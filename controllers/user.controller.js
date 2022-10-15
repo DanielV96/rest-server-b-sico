@@ -3,7 +3,7 @@ const { request, response } = require('express')
 const getUsersById = (req = request, res = response) => {
   //Url/api/users/?name=Daniel..
   const id = req.params.id
-  req.json({
+  res.json({
     msg: 'Usuario por id - Get-Controller ',
     id,
   })
@@ -12,7 +12,7 @@ const getUsersById = (req = request, res = response) => {
 const getUsers = (req = request, res = response) => {
   const { name, date } = req.query
 
-  req.res.status(200).json({
+  res.status(200).json({
     msg: 'Get-Controller',
     name,
     date,
