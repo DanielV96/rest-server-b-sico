@@ -42,7 +42,7 @@ const updateUser = (req = request, res = response) => {
 }
 
 const deleteUser = (req = request, res = response) => {
-  const id = res.params
+  const id = req.params
   res.json({
     msg: 'delete API - Controller',
     id,
