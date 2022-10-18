@@ -20,7 +20,7 @@ const getUsers = (req = request, res = response) => {
 }
 
 const createUser = (req = request, res = response) => {
-  //Url/api/users/-> Body: Es el objeto en JSON
+  //Url/api/users-> Body: Es el objeto en JSON
 
   const data = req.body
   res.status(201).json({
