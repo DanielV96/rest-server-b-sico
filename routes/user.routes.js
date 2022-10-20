@@ -1,4 +1,8 @@
 const { Router } = require('express')
+const { check } = require('express-validator')
+const { validateFields } = require('../middlewares/validate-fields')
+const { isValiRole, emailExist } = require('../helpers/db-validator')
+
 const {
   getUsers,
   createUser,
@@ -13,7 +17,32 @@ router.get('/:id', getUsersById)
 
 router.get('/', getUsers)
 
-router.post('/', createUser)
+router.post(
+  '/',
+  [
+    check('name', 'Nombre es requerido').not().isEmpty(),
+    check('email', 'El email es requerido').not().isEmpty(),
+    check('email', 'El correo no es válido').isEmail(),
+    check('email').custom(emailExist),
+    check('password', 'Contraseña es requerida').not().isEmpty(),
+    check('password', 'La contraseña debe tener 6 carácteres o más').isLength({
+      min: 6,
+    }),
+    // check('password', 'La contraseña es débil').isStrongPassword(),
+    check('role', 'El rol es requerido').not().isEmpty(),
+
+    // check('role', 'El ROL no es válido, debe ser ADMIN_ROLE o USER_ROLE').isIn([
+    //   'ADMIN_ROLE',
+    //   'USER_ROLE',
+    // ]),
+
+    check('role').custom(isValiRole),
+
+    validateFields,
+  ],
+
+  createUser
+)
 
 router.put('/:id', updateUser)
 
