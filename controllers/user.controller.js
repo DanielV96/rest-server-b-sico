@@ -2,6 +2,9 @@ const { request, response } = require('express')
 const bcryptjs = require('bcryptjs')
 
 const User = require('../models/user')
+const res = require('express/lib/response')
+const { body } = require('express-validator')
+const user = require('../models/user')
 
 const getUsersById = (req = request, res = response) => {
   //Url/api/users/?name=Daniel..
@@ -12,55 +15,104 @@ const getUsersById = (req = request, res = response) => {
   })
 }
 
-const getUsers = (req = request, res = response) => {
-  const { name, date } = req.query
+const getUsers = async (req = request, res = response) => {
+  try {
+    let { from = 0, lot = 5 } = req.query
+    from = from <= 0 || isNaN(from) ? 0 : from - 1
 
-  res.status(200).json({
-    msg: 'Get-Controller',
-    name,
-    date,
-  })
+    const query = { status: true }
+
+    const [users, total] = await Promise.all([
+      User.find(query).skip(from).limit(lot),
+      User.countDocuments(query),
+    ])
+
+    res.status(200).json({
+      total,
+      quantity: users.length,
+      users,
+      from: from + 1,
+      lot: Number(lot),
+    })
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      msg: 'Error en el servidor',
+    })
+  }
 }
 
 const createUser = async (req = request, res = response) => {
   //Url/api/users-> Body: Es el objeto en JSON
+  try {
+    const { name, email, password, role } = req.body
+    const user = new User({ name, email, password, role })
 
- 
+    //Verificar si el correo ya existe en la BD
 
-  const { name, email, password, role } = req.body
-  const user = new User({ name, email, password, role })
+    user.password = bcryptjs.hashSync(password, bcryptjs.genSaltSync())
 
-  //Verificar si el correo ya existe en la BD
- 
+    await user.save()
 
-  user.password = bcryptjs.hashSync(password, bcryptjs.genSaltSync())
-
-  await user.save()
-
-  res.status(201).json({
-    msg: 'post API - Controller',
-    user,
-  })
+    res.status(201).json({
+      user,
+    })
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      msg: 'Error en el servidor',
+    })
+  }
 }
 
-const updateUser = (req = request, res = response) => {
+const updateUser = async (req = request, res = response) => {
   //Url/api/users/26-> segmento: el 26 entra en el id
+  try {
+    const id = req.params.id
+    const { password, ...data } = req.body
 
-  const id = req.params.id
-  const body = req.body
-  res.json({
-    msg: 'put API - Controller',
-    id,
-    body,
-  })
+    if (password) {
+      data.password = bcryptjs.hashSync(password, bcryptjs.genSaltSync())
+    }
+    const user = await User.findByIdAndUpdate(id, data, { new: true })
+
+    res.json({
+      user,
+    })
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      msg: 'Error en el servidor',
+    })
+  }
 }
 
-const deleteUser = (req = request, res = response) => {
-  const id = req.params
-  res.json({
-    msg: 'delete API - Controller',
-    id,
-  })
+const deleteUser = async (req = request, res = response) => {
+  try {
+    const { id } = req.params
+
+    //Borrar fisico de la BD
+
+    // const deleteUser = await User.findByIdAndDelete(id)
+
+    //Borrado suave
+
+    const deleteUser = await User.findByIdAndUpdate(
+      id,
+      { status: false },
+      { new: true }
+    )
+
+    res.json({
+      msg: 'delete API - Controller',
+      deleteUser,
+    })
+  } catch (error) {
+    console.log(error)
+    res.status(500).json({
+      msg: 'Error en el servidor',
+    })
+  }
 }
 
 module.exports = {
