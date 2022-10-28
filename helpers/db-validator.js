@@ -25,5 +25,6 @@ const userByIdExists = async (id = '') => {
 module.exports = {
   isValiRole,
   emailExist,
+  
   userByIdExists,
 }
