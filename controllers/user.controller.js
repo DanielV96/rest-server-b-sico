@@ -2,9 +2,6 @@ const { request, response } = require('express')
 const bcryptjs = require('bcryptjs')
 
 const User = require('../models/user')
-const res = require('express/lib/response')
-const { body } = require('express-validator')
-const user = require('../models/user')
 
 const getUsersById = (req = request, res = response) => {
   //Url/api/users/?name=Daniel..
